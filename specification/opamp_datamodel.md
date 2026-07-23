@@ -295,6 +295,13 @@ content-type is `application/yaml`.
 Agents MAY accept payloads from other `AgentRemoteConfig.AgentConfigMap` keys
 not defined in this specification.
 
+Remote configuration takes precedence over startup configuration for the
+profiling settings represented by this remote configuration schema. Startup
+configuration determines the initial profiling state until the agent accepts a
+remote configuration. After that, the accepted remote configuration is the
+authoritative source for whether profilers are running and for the profiler
+settings it contains.
+
 ### Data Format
 
 When agents receive a remote configuration with the key `splunk.remote.config` and
@@ -307,21 +314,26 @@ distribution:
       always_on:
         cpu_profiler:
           sampling_interval: 1001
+        memory_profiler:
 ```
 
 Agents SHOULD be relaxed in parsing and SHOULD ignore all other values.
 
-* When `cpu_profiler` is present, it indicates that the CPU profiler should be started
+* When `cpu_profiler` is present, it indicates that the CPU profiler SHOULD be started
   if it is not currently running.
-* When `cpu_profiler` is omitted, it indicates that the CPU profiler should be stopped
+* When `cpu_profiler` is omitted, it indicates that the CPU profiler SHOULD be stopped
   if it is currently running.
-* When `sampling_interval` is present, it indicates how often the profiler should
+* When `sampling_interval` is present, it indicates how often the profiler SHOULD
   sample.
+* When `memory_profiler` is present, it indicates that the memory profiler
+  SHOULD be started if it is not currently running.
+* When `memory_profiler` is omitted, it indicates that the memory profiler
+  SHOULD be stopped if it is currently running.
 
 Agents SHOULD detect when remote configuration differs from current effective
 configuration and SHOULD alter its internal state to match remote config. In
 other words, remote config can cause the agent to start or stop the profiler or
-modify the sampling interval.
+modify profiler settings.
 
 When an agent is able to change state based on remote configuration values,
 subsequent effective configuration reports (as requested by the server)
